@@ -359,6 +359,7 @@ export default createReactClass({
     state.inputFocused = false;
     state.placeholder = this.props.placeholder || this.props.dateFormat;
     state.separator = this.props.dateFormat.match(/[^A-Z]/)[0];
+    state.showCalendar = false;
     return state;
   },
 
@@ -408,7 +409,8 @@ export default createReactClass({
       return;
     }
     this.setState({
-      focused: false
+      focused: false,
+      showCalendar: false
     });
     if (this.props.onBlur) {
       const event = document.createEvent('CustomEvent');
@@ -458,6 +460,13 @@ export default createReactClass({
     this.setState({
       inputFocused: false
     });
+  },
+
+  handleCalendarButtonClick() {
+    this.setState({showCalendar: !this.state.showCalendar});
+    if (!this.state.showCalendar && !this.state.inputFocused) {
+        ReactDOM.findDOMNode(this.refs.input).focus();
+    }
   },
 
   shouldComponentUpdate: function(nextProps, nextState) {
@@ -607,7 +616,8 @@ export default createReactClass({
       selectedDate: newSelectedDate,
       displayDate: newSelectedDate,
       value: newSelectedDate.toISOString(),
-      focused: false
+      focused: false,
+      showCalendar: false
     });
 
     if (this.props.onBlur) {
@@ -685,7 +695,7 @@ export default createReactClass({
       <Overlay
         rootClose={true}
         onHide={this.handleHide}
-        show={this.state.focused}
+        show={this.state.showCalendar}
         container={() => this.props.calendarContainer || ReactDOM.findDOMNode(this.refs.overlayContainer)}
         target={() => ReactDOM.findDOMNode(this.refs.input)}
         placement={this.state.calendarPlacement}
@@ -709,6 +719,9 @@ export default createReactClass({
       </Overlay>
       <div ref="overlayContainer" style={{position: 'relative'}} />
       <input ref="hiddenInput" type="hidden" id={this.props.id} name={this.props.name} value={this.state.value || ''} data-formattedvalue={this.state.value ? this.state.inputValue : ''} />
+      <InputGroup.Addon ref="calendarButton" onClick={this.handleCalendarButtonClick} style={{borderLeft: 0}}>
+        <i className={'glyphicon glyphicon-calendar'} />
+      </InputGroup.Addon>
       {this.props.showClearButton && !this.props.customControl && <InputGroup.Addon
         onClick={this.props.disabled ? null : this.clear}
         style={{cursor:(this.state.inputValue && !this.props.disabled) ? 'pointer' : 'not-allowed'}}>
