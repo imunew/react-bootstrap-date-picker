@@ -319,7 +319,8 @@ export default createReactClass({
     ]),
     onInvalid: PropTypes.func,
     noValidate: PropTypes.bool,
-    onDisplayMonth: PropTypes.func
+    onDisplayMonth: PropTypes.func,
+    onParseInputDate: PropTypes.func
   },
 
   getDefaultProps() {
@@ -562,32 +563,12 @@ export default createReactClass({
       return;
     }
 
-    let month, day, year;
-    if (this.props.dateFormat.match(/MM.DD.YYYY/)) {
-      if (!inputValue.match(/[0-1][0-9].[0-3][0-9].[1-2][0-9][0-9][0-9]/)) {
-        return this.handleBadInput(originalValue);
-      }
-
-      month = inputValue.slice(0,2).replace(/[^0-9]/g, '');
-      day = inputValue.slice(3,5).replace(/[^0-9]/g, '');
-      year = inputValue.slice(6,10).replace(/[^0-9]/g, '');
-    } else if (this.props.dateFormat.match(/DD.MM.YYYY/)) {
-      if (!inputValue.match(/[0-3][0-9].[0-1][0-9].[1-2][0-9][0-9][0-9]/)) {
-        return this.handleBadInput(originalValue);
-      }
-
-      day = inputValue.slice(0,2).replace(/[^0-9]/g, '');
-      month = inputValue.slice(3,5).replace(/[^0-9]/g, '');
-      year = inputValue.slice(6,10).replace(/[^0-9]/g, '');
-    } else {
-      if (!inputValue.match(/[1-2][0-9][0-9][0-9].[0-1][0-9].[0-3][0-9]/)) {
-        return this.handleBadInput(originalValue);
-      }
-
-      year = inputValue.slice(0,4).replace(/[^0-9]/g, '');
-      month = inputValue.slice(5,7).replace(/[^0-9]/g, '');
-      day = inputValue.slice(8,10).replace(/[^0-9]/g, '');
+    const parsedDate = this.props.onParseInputDate ?
+      this.props.onParseInputDate(inputValue, this.parseInputDate) : this.parseInputDate(inputValue);
+    if (!parsedDate) {
+      return this.handleBadInput(originalValue);
     }
+    const { year, month, day } = parsedDate;
 
     const monthInteger = parseInt(month, 10);
     const dayInteger = parseInt(day, 10);
@@ -612,6 +593,41 @@ export default createReactClass({
     this.setState({
       inputValue: inputValue
     });
+  },
+
+  parseInputDate(inputValue) {
+    let month, day, year;
+    if (this.props.dateFormat.match(/MM.DD.YYYY/)) {
+      if (!inputValue.match(/[0-1][0-9].[0-3][0-9].[1-2][0-9][0-9][0-9]/)) {
+        return false;
+      }
+
+      month = inputValue.slice(0,2).replace(/[^0-9]/g, '');
+      day = inputValue.slice(3,5).replace(/[^0-9]/g, '');
+      year = inputValue.slice(6,10).replace(/[^0-9]/g, '');
+    } else if (this.props.dateFormat.match(/DD.MM.YYYY/)) {
+      if (!inputValue.match(/[0-3][0-9].[0-1][0-9].[1-2][0-9][0-9][0-9]/)) {
+        return false;
+      }
+
+      day = inputValue.slice(0,2).replace(/[^0-9]/g, '');
+      month = inputValue.slice(3,5).replace(/[^0-9]/g, '');
+      year = inputValue.slice(6,10).replace(/[^0-9]/g, '');
+    } else {
+      if (!inputValue.match(/[1-2][0-9][0-9][0-9].[0-1][0-9].[0-3][0-9]/)) {
+        return false;
+      }
+
+      year = inputValue.slice(0,4).replace(/[^0-9]/g, '');
+      month = inputValue.slice(5,7).replace(/[^0-9]/g, '');
+      day = inputValue.slice(8,10).replace(/[^0-9]/g, '');
+    }
+
+    return {
+      year: year,
+      month: month,
+      day: day
+    };
   },
 
   onChangeMonth(newDisplayDate) {
