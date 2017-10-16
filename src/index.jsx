@@ -702,8 +702,7 @@ export default createReactClass({
       ref="inputGroup"
       bsClass={this.props.bsClass}
       bsSize={this.props.bsSize}
-      id={this.props.id ? `${this.props.id}_group` : null}
-      style={{display: 'table-row'}}>
+      id={this.props.id ? `${this.props.id}_group` : null}>
       {control}
       <Overlay
         rootClose={true}
