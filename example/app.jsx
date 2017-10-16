@@ -364,6 +364,14 @@ const App = createReactClass({
         </Col>
       </Row>
       <Row>
+        <Col sm={6}>
+          <FormGroup>
+            <ControlLabel>Change Year and Month Format on Header</ControlLabel>
+            <DatePicker onDisplayMonth={(y, m) => { return `${y} ${m}`; }} />
+          </FormGroup>
+        </Col>
+      </Row>
+      <Row>
         <Col xs={12}>
           <h2>Placement</h2>
         </Col>

@@ -29,6 +29,7 @@ const CalendarHeader = createReactClass({
       PropTypes.string,
       PropTypes.object
     ]).isRequired,
+    onDisplayMonth: PropTypes.func
   },
 
   displayingMinMonth() {
@@ -61,12 +62,21 @@ const CalendarHeader = createReactClass({
     this.props.onChange(newDisplayDate);
   },
 
+  displayMonth() {
+    const year = this.props.displayDate.getFullYear();
+    const month = this.props.monthLabels[this.props.displayDate.getMonth()];
+    if (this.props.onDisplayMonth) {
+      return this.props.onDisplayMonth(year, month);
+    }
+    return `${month} ${year}`;
+  },
+
   render() {
     return <div className="text-center">
       <div className="text-muted pull-left datepicker-previous-wrapper" onClick={this.handleClickPrevious} style={{cursor: 'pointer'}}>
         {this.displayingMinMonth() ? null : this.props.previousButtonElement}
       </div>
-      <span>{this.props.monthLabels[this.props.displayDate.getMonth()]} {this.props.displayDate.getFullYear()}</span>
+      <span>{this.displayMonth()}</span>
       <div className="text-muted pull-right datepicker-next-wrapper" onClick={this.handleClickNext} style={{cursor: 'pointer'}}>
         {this.displayingMaxMonth() ? null : this.props.nextButtonElement}
       </div>
@@ -308,7 +318,8 @@ export default createReactClass({
 
     ]),
     onInvalid: PropTypes.func,
-    noValidate: PropTypes.bool
+    noValidate: PropTypes.bool,
+    onDisplayMonth: PropTypes.func
   },
 
   getDefaultProps() {
@@ -648,7 +659,8 @@ export default createReactClass({
       maxDate={this.props.maxDate}
       onChange={this.onChangeMonth}
       monthLabels={this.props.monthLabels}
-      dateFormat={this.props.dateFormat} />;
+      dateFormat={this.props.dateFormat}
+      onDisplayMonth={this.props.onDisplayMonth} />;
 
     const control = this.props.customControl
       ? React.cloneElement(this.props.customControl, {
