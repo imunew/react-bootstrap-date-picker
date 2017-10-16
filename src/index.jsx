@@ -320,7 +320,7 @@ export default createReactClass({
     onInvalid: PropTypes.func,
     noValidate: PropTypes.bool,
     onDisplayMonth: PropTypes.func,
-    onParseInputDate: PropTypes.func
+    onFixInputDate: PropTypes.func
   },
 
   getDefaultProps() {
@@ -469,9 +469,45 @@ export default createReactClass({
   },
 
   handleBlur() {
+    this.fixInputDate();
+
     this.setState({
       inputFocused: false
     });
+  },
+
+  fixInputDate() {
+    if (!this.props.onFixInputDate) {
+      return;
+    }
+    const originalValue = ReactDOM.findDOMNode(this.refs.input).value;
+    const inputValue = originalValue.replace(/(-|\/\/)/g, this.state.separator).slice(0,10);
+
+    const parsedDate = this.props.onFixInputDate(inputValue, this.parseInputDate);
+    if (!parsedDate) {
+      return;
+    }
+
+    const { year, month, day } = parsedDate;
+
+    if (!this.isValidDate(year, month, day)) {
+      return;
+    }
+
+    const selectedDate = new Date(year, month - 1, day, 12, 0, 0, 0);
+
+    setTimeout(() => {
+      this.setState({
+        selectedDate: selectedDate,
+        displayDate: selectedDate,
+        value: selectedDate.toISOString(),
+        inputValue: this.makeInputValueString(selectedDate)
+      });
+    }, 0);
+
+    if (this.props.onChange) {
+      this.props.onChange(selectedDate.toISOString(), inputValue);
+    }
   },
 
   handleCalendarButtonClick() {
@@ -563,22 +599,10 @@ export default createReactClass({
       return;
     }
 
-    const parsedDate = this.props.onParseInputDate ?
-      this.props.onParseInputDate(inputValue, this.parseInputDate) : this.parseInputDate(inputValue);
-    if (!parsedDate) {
-      return this.handleBadInput(originalValue);
-    }
-    const { year, month, day } = parsedDate;
+    const { year, month, day } = this.parseInputDate(inputValue);
 
-    const monthInteger = parseInt(month, 10);
-    const dayInteger = parseInt(day, 10);
-    const yearInteger = parseInt(year, 10);
-    if (monthInteger > 12 || dayInteger > 31) {
-      return this.handleBadInput(originalValue);
-    }
-
-    if (!isNaN(monthInteger) && !isNaN(dayInteger) && !isNaN(yearInteger) && monthInteger <= 12 && dayInteger <= 31 && yearInteger > 999) {
-      const selectedDate = new Date(yearInteger, monthInteger - 1, dayInteger, 12, 0, 0, 0);
+    if (this.isValidDate(year, month, day)) {
+      const selectedDate = new Date(year, month - 1, day, 12, 0, 0, 0);
       this.setState({
         selectedDate: selectedDate,
         displayDate: selectedDate,
@@ -623,11 +647,22 @@ export default createReactClass({
       day = inputValue.slice(8,10).replace(/[^0-9]/g, '');
     }
 
+    const yearInteger = parseInt(year, 10);
+    const monthInteger = parseInt(month, 10);
+    const dayInteger = parseInt(day, 10);
+    if (monthInteger > 12 || dayInteger > 31) {
+      return false;
+    }
+
     return {
-      year: year,
-      month: month,
-      day: day
+      year: yearInteger,
+      month: monthInteger,
+      day: dayInteger
     };
+  },
+
+  isValidDate(year, month, day) {
+    return (!isNaN(month) && !isNaN(day) && !isNaN(year) && month <= 12 && day <= 31 && year > 999);
   },
 
   onChangeMonth(newDisplayDate) {
