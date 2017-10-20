@@ -370,6 +370,26 @@ const App = createReactClass({
             <DatePicker onDisplayMonth={(y, m) => { return `${y} ${m}`; }} />
           </FormGroup>
         </Col>
+        <Col sm={6}>
+          <FormGroup>
+            <ControlLabel>Fix date input.</ControlLabel>
+            <DatePicker dateFormat="YYYY/MM/DD"
+                        onFixInputDate={(inputValue, parser) => {
+                            const today = new Date()
+                            const match = inputValue.match(/^\d{1,2}\/\d{1,2}$/)
+                            if (match) {
+                                const parts = inputValue.split('/')
+                                return {
+                                    year: today.getFullYear(),
+                                    month: parseInt(parts[0]),
+                                    day: parseInt(parts[1]),
+                                }
+                            }
+                            return parser(inputValue)
+                        }}
+            />
+          </FormGroup>
+        </Col>
       </Row>
       <Row>
         <Col xs={12}>

@@ -480,6 +480,9 @@ export default createReactClass({
     if (!this.props.onFixInputDate) {
       return;
     }
+    if (this.state.showCalendar) {
+      return true;
+    }
     const originalValue = ReactDOM.findDOMNode(this.refs.input).value;
     const inputValue = originalValue.replace(/(-|\/\/)/g, this.state.separator).slice(0,10);
 
